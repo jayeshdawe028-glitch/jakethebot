@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS premium_entitlements (
   removed_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_premium_active ON premium_entitlements(active, expires_at);
-CREATE TABLE IF NOT EXISTS music_247 (
+CREATE TABLE IF NOT EXISTS radio_247 (\n  guild_id TEXT PRIMARY KEY,\n  voice_channel_id TEXT NOT NULL,\n  text_channel_id TEXT NOT NULL,\n  station_name TEXT NOT NULL,\n  stream_url TEXT NOT NULL,\n  enabled_by TEXT NOT NULL,\n  enabled_at INTEGER NOT NULL\n);\nCREATE TABLE IF NOT EXISTS music_247 (
   guild_id TEXT PRIMARY KEY,
   voice_channel_id TEXT NOT NULL,
   text_channel_id TEXT NOT NULL,
