@@ -10,14 +10,25 @@ const commandList = [
   {name:'Extra',id:'help:extra'}
 ];
 const helpPages = {
-  home: {title:'Puchki • Command Center', description:'Your server, your vibe. Choose a category below.', fields:[
-    {name:'🛡️ SECURITY',value:'Antinuke • AutoMod • AntiRaid • Lockdown • Verification'},
-    {name:'⚙️ MANAGEMENT',value:'Tickets • Welcome/Leave • Autorole • Logging • Voice'},
-    {name:'✨ EXTRA',value:'Moderation • Utilities • Leveling • Giveaways • Premium'}
+  home: {title:'🐾 Puchki • Command Center', description:'Here are the commands that are implemented in this version. Choose a category below.', fields:[
+    {name:'✅ Working now',value:'`/ping` — check bot latency\n`/help` — open this command guide\n`/premium info` — check this server’s Premium status',inline:false},
+    {name:'👑 Premium management',value:'Authorized owner/staff commands: activate, renew and remove server Premium. Owner-only tools manage Premium staff and user grants.',inline:false},
+    {name:'🚧 Planned — not available yet',value:'Antinuke • AutoMod • AntiRaid • Tickets • Welcome/Leave • Autorole • Logging • Giveaways • Leveling',inline:false}
   ]},
-  security:{title:'🛡️ Security',description:'Planned security module categories.',fields:[{name:'Coming in phases',value:'Antinuke • AutoMod • AntiRaid • Lockdown • Quarantine • Verification'}]},
-  management:{title:'⚙️ Management',description:'Planned server management categories.',fields:[{name:'Coming in phases',value:'Tickets • Welcome/Leave • Autorole • Logging • Join-to-Create voice'}]},
-  extra:{title:'✨ Extra',description:'Available in this starter: ping, help, premium management.',fields:[{name:'Coming in phases',value:'Moderation • Leveling • Counts • Giveaways • Utilities • Bot customization'}]}
+  security:{title:'🛡️ Security',description:'No security protection commands are active in this version yet.',fields:[
+    {name:'🚧 Planned features',value:'Antinuke • AutoMod • AntiRaid • Lockdown • Quarantine • Verification'},
+    {name:'✅ Available now',value:'No security commands yet. These will appear here when implemented.'}
+  ]},
+  management:{title:'⚙️ Management',description:'Server management modules are planned, but not active yet.',fields:[
+    {name:'🚧 Planned features',value:'Tickets • Welcome/Leave • Autorole • Logging • Join-to-Create voice'},
+    {name:'✅ Available now',value:'No server management commands yet.'}
+  ]},
+  extra:{title:'✨ Commands you can use now',description:'Only commands currently implemented are listed here.',fields:[
+    {name:'📡 General',value:'`/ping` — check whether Puchki is online and view latency\n`/help` — show this interactive command guide'},
+    {name:'💎 Premium — everyone',value:'`/premium info` — check Premium status for the current server'},
+    {name:'👑 Premium — authorized staff',value:'`/premium activate server-id:<ID>` — grant 30 days\n`/premium renew server-id:<ID>` — add 30 days\n`/premium remove server-id:<ID>` — remove active Premium'},
+    {name:'🔒 Premium — owner only',value:'`/premium staff-add`, `staff-limit`, `staff-remove`, `staff-list`, `grant-user`, `revoke-user`, `guildlist`\nUse Discord’s slash-command options to see required arguments.'}
+  ]}
 };
 const helpRow = active => new ActionRowBuilder().addComponents(commandList.map(c =>
   new ButtonBuilder().setCustomId(c.id).setLabel(c.name).setStyle(c.id===`help:${active}`?ButtonStyle.Primary:ButtonStyle.Secondary)
