@@ -1,0 +1,9 @@
+services:
+  puchki:
+    build: .
+    container_name: puchki-discord-bot
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
