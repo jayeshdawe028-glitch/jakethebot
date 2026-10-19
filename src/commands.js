@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { config } from './config.js';
+import { moderationCommands } from './moderation.js';
 import { db, DAY, isOwner, getStaff, activeGuildPremium, audit } from './database.js';
 
 const green = 0x8B5CF6;
@@ -136,7 +137,8 @@ export const commands = [
       audit(actor,sub==='renew'?'premium_renew':'premium_activate','guild',guildId,{expiresAt:expires});
       return i.reply({content:`Premium ${sub==='renew'?'renewed':'activated'} until <t:${Math.floor(expires/1000)}:F>.`,ephemeral:true});
     }
-  }
+  },
+  ...moderationCommands
 ];
 
 export async function handleHelpButton(i) {
