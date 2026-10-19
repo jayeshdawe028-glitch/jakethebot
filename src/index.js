@@ -2,8 +2,13 @@ import { Client, Collection, GatewayIntentBits, Events } from 'discord.js';
 import { config } from './config.js';
 import { db, expireEntitlements } from './database.js';
 import { commands, handleHelpButton } from './commands.js';
+import { handleFunMessage, handleFunButton } from './fun.js';
 
-const client=new Client({intents:[GatewayIntentBits.Guilds]});
+const client=new Client({intents:[
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.MessageContent
+]});
 client.commands=new Collection(commands.map(c=>[c.data.name,c]));
 client.once(Events.ClientReady, c=>{
   console.log(`[Puchki] Online as ${c.user.tag}`);
@@ -18,12 +23,22 @@ client.on(Events.InteractionCreate,async i=>{
       if(cmd) await cmd.execute(i);
     } else if(i.isButton()&&i.customId.startsWith('help:')) {
       await handleHelpButton(i);
+    } else if(i.isButton()&&i.customId.startsWith('fun:')) {
+      await handleFunButton(i);
     }
   } catch(e) {
     console.error('[Interaction]',e);
     const payload={content:'Puchki had a small issue handling that command. Please try again.',ephemeral:true};
     if(i.deferred||i.replied) await i.followUp(payload).catch(()=>{});
     else await i.reply(payload).catch(()=>{});
+  }
+});
+client.on(Events.MessageCreate, async message => {
+  try {
+    await handleFunMessage(message);
+  } catch (e) {
+    console.error('[Fun command]',e);
+    if (message.guild) await message.reply('Puchki ko command chalate waqt issue aaya.').catch(()=>{});
   }
 });
 process.on('SIGINT',()=>{db.close();client.destroy();process.exit(0);});
