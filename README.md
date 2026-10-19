@@ -10,6 +10,9 @@
 
 ## Features included
 - `/ping` and interactive `/help` category panel
+- Moderation: `/ban`, `/kick`, `/timeout`, `/untimeout`, `/warn`, `/warnings view`, `/warnings clear`, `/purge`
+- `/modsetup log-channel` and `/modsetup view` for per-server moderation logs
+- Moderation warnings stored persistently in SQLite; role hierarchy and permission checks are applied
 - Support server and developer promo links in help embed
 - Owner-managed Premium Staff with per-staff active grant limit
 - 30-day server Premium, removal, renewal, and expiry sweep
@@ -62,6 +65,18 @@ npm run deploy
 npm start
 ```
 With `GUILD_ID` set, command registration is fast for the specified test server. Remove it only when you want global slash command registration.
+
+## Moderation commands
+- `/ban user [delete-days] [reason]` — ban a member
+- `/kick user [reason]` — kick a member
+- `/timeout user minutes [reason]` — timeout from 1 minute up to 28 days
+- `/untimeout user [reason]` — remove timeout
+- `/warn user reason` — add a persistent warning
+- `/warnings view user` — view active warnings; `/warnings clear user` — clear them
+- `/purge amount [user]` — bulk-delete up to 100 recent messages (Discord excludes messages older than 14 days)
+- `/modsetup log-channel channel` — configure a moderation log channel; `/modsetup view` — inspect setting
+
+The bot needs appropriate Discord permissions and a role above the members it moderates. Auto-moderation of message content is not enabled in this initial moderation update; that requires the Message Content intent and separate configuration.
 
 ## Premium commands
 - `/premium staff-add user limit` — Owner grants staff rights and defines their maximum active server grants
