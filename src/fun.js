@@ -33,7 +33,7 @@ export async function handleFunMessage(message) {
     return true;
   }
 
-  if (/^!microclear\\b/i.test(content)) {
+  if (/^!microclear\b/i.test(content)) {
     if (!message.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
       await message.reply('⛔ Is command ke liye **Manage Messages** permission chahiye.');
       return true;
@@ -58,7 +58,7 @@ export async function handleFunMessage(message) {
       if (batch.size < 100) break;
     }
 
-    const normalize = m => m.content.trim().toLowerCase().replace(/\\s+/g, ' ');
+    const normalize = m => m.content.trim().toLowerCase().replace(/\s+/g, ' ');
     const groups = new Map();
     for (const m of messages) {
       if (m.id === message.id || m.author.id === message.client.user.id) continue;
@@ -79,7 +79,7 @@ export async function handleFunMessage(message) {
       }
     }
 
-    await message.channel.send(`🧹 **Microclear complete!** Deleted **${deleted}** messages from repeated text groups (same text appearing 3+ times). Scanned **${scanned}** messages in this channel.\\n${scanned >= maxScan ? 'Search limit reached (5,000 messages); older history may contain more spam.' : 'Only this channel was searched.'}`);
+    await message.channel.send(`🧹 **Microclear complete!** Deleted **${deleted}** messages from repeated text groups (same text appearing 3+ times). Scanned **${scanned}** messages in this channel.\n${scanned >= maxScan ? 'Search limit reached (5,000 messages); older history may contain more spam.' : 'Only this channel was searched.'}`);
     return true;
   }
   return false;
