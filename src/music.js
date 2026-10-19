@@ -144,9 +144,10 @@ const radioCommands = [
         const voice = voiceRequired(i); if (!voice) return;
         const player = manager.getPlayer(i.guildId);
         const track = player?.queue?.current;
-        const url = track?.info?.uri || track?.info?.identifier;
+        const chosen = i.client.radioCurrent?.get(i.guildId);
+        const url = chosen?.url || track?.info?.uri;
         if (!player || !track || !url) return i.reply({ content: 'Pehle /radio se station select karke radio chalao, phir /247 enable karo.', ephemeral: true });
-        const name = track.info?.title || 'Hindi FM Radio';
+        const name = chosen?.name || track.info?.title || 'Hindi FM Radio';
         db.prepare('INSERT INTO radio_247(guild_id,voice_channel_id,text_channel_id,station_name,stream_url,enabled_by,enabled_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(guild_id) DO UPDATE SET voice_channel_id=excluded.voice_channel_id,text_channel_id=excluded.text_channel_id,station_name=excluded.station_name,stream_url=excluded.stream_url,enabled_by=excluded.enabled_by,enabled_at=excluded.enabled_at')
           .run(i.guildId, voice.id, i.channelId, name, url, i.user.id, Date.now());
         return i.reply({ content: '🔒 24/7 Radio enabled! Puchki will try to rejoin and resume this station after a bot restart. Public node and stream availability still matter.', ephemeral: true });
@@ -171,6 +172,8 @@ export async function handleRadioSelect(i) {
     await playStation(i.guild, voice, i.channel, station);
     const title = station.displayName || station.name;
     const streamUrl = station.url_resolved || station.url;
+    i.client.radioCurrent ||= new Map();
+    i.client.radioCurrent.set(i.guildId, { name: title, url: streamUrl });
     await i.editReply({ content: '🔴 Now live: ' + title + '\n📻 Puchki is streaming in <#' + voice.id + '>. Use /radio to change station or /247 enable for 24/7.', components: [] });
     db.prepare('UPDATE radio_247 SET station_name=?,stream_url=? WHERE guild_id=?').run(title, streamUrl, i.guildId);
   } catch (error) {
