@@ -29,7 +29,8 @@ async function targetCheck(i, member) {
   if (!member) return 'That member is not in this server.';
   if (member.id === i.user.id) return 'You cannot target yourself.';
   if (member.id === i.guild.ownerId) return 'You cannot moderate the server owner.';
-  if (member.roles.highest.position >= i.member.roles.highest.position && i.guild.ownerId !== i.user.id)
+  const moderator = await i.guild.members.fetch(i.user.id);
+  if (member.roles.highest.position >= moderator.roles.highest.position && i.guild.ownerId !== i.user.id)
     return 'Your highest role must be above the target member’s highest role.';
   const bot = await i.guild.members.fetchMe();
   if (member.roles.highest.position >= bot.roles.highest.position)
