@@ -26,6 +26,7 @@ const helpPages = {
   ]},
   extra:{title:'✨ Commands you can use now',description:'Only commands currently implemented are listed here.',fields:[
     {name:'📡 General',value:'`/ping` — check whether Puchki is online and view latency\n`/help` — show this interactive command guide'},
+    {name:'🛡️ Moderation',value:'`/ban` • `/kick` • `/timeout` • `/untimeout` • `/warn` • `/warnings view` • `/warnings clear` • `/purge`\nConfigure logs with `/modsetup log-channel`.'},
     {name:'💎 Premium — everyone',value:'`/premium info` — check Premium status for the current server'},
     {name:'👑 Premium — authorized staff',value:'`/premium activate server-id:<ID>` — grant 30 days\n`/premium renew server-id:<ID>` — add 30 days\n`/premium remove server-id:<ID>` — remove active Premium'},
     {name:'🔒 Premium — owner only',value:'`/premium staff-add`, `staff-limit`, `staff-remove`, `staff-list`, `grant-user`, `revoke-user`, `guildlist`\nUse Discord’s slash-command options to see required arguments.'}
