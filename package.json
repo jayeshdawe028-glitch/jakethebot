@@ -16,6 +16,6 @@
     "better-sqlite3": "^11.8.1",
     "discord.js": "^14.19.3",
     "dotenv": "^16.4.7",
-    "lavalink-client": "^2.5.0"
+    "@discordjs/voice": "^0.18.0"
   }
 }
