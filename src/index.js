@@ -3,13 +3,16 @@ import { config } from './config.js';
 import { db, expireEntitlements } from './database.js';
 import { commands, handleHelpButton } from './commands.js';
 import { handleFunMessage, handleFunButton } from './fun.js';
+import { setupMusic } from './music.js';
 
 const client=new Client({intents:[
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildVoiceStates,
   GatewayIntentBits.MessageContent
 ]});
 client.commands=new Collection(commands.map(c=>[c.data.name,c]));
+setupMusic(client);
 client.once(Events.ClientReady, c=>{
   console.log(`[Puchki] Online as ${c.user.tag}`);
   console.log('[Puchki] Support:',config.supportUrl);
