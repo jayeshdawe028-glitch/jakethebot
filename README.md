@@ -19,13 +19,13 @@
 - Owner direct 30-day user Premium entitlement record
 - SQLite database and Premium audit log
 - Docker Compose for Oracle Ubuntu
-- Slash commands only; no web dashboard
+- Slash commands plus a few prefix fun commands; no web dashboard
 
 ## Requirements
 - Ubuntu 22.04/24.04 recommended, Node.js 22 (or Docker)
 - Discord application created in Discord Developer Portal
 - Invite scopes: `bot` and `applications.commands`
-- Initially the bot only needs the `Guilds` gateway intent
+- Enable the **Message Content Intent** in Discord Developer Portal (Bot → Privileged Gateway Intents) for `p!ban`, `p!kick`, and `!Microclear` to work. The bot also uses Guild Messages intent.
 
 ## Configure
 ```bash
@@ -76,7 +76,7 @@ With `GUILD_ID` set, command registration is fast for the specified test server.
 - `/purge amount [user]` — bulk-delete up to 100 recent messages (Discord excludes messages older than 14 days)
 - `/modsetup log-channel channel` — configure a moderation log channel; `/modsetup view` — inspect setting
 
-The bot needs appropriate Discord permissions and a role above the members it moderates. Auto-moderation of message content is not enabled in this initial moderation update; that requires the Message Content intent and separate configuration.
+Fun prefix commands: `p!ban @member` and `p!kick @member` post clearly labelled prank notices only; they do not ban or kick anyone. Buttons reply with joke appeals. `!Microclear <text>` searches the current channel's latest 5,000 messages and deletes messages containing that text; it requires Manage Messages for both the invoking user and bot. This is destructive, so check the search phrase before running it.\n\nThe bot needs appropriate Discord permissions and a role above the members it moderates. Auto-moderation of message content is not enabled in this initial moderation update; that requires the Message Content intent and separate configuration.
 
 ## Premium commands
 - `/premium staff-add user limit` — Owner grants staff rights and defines their maximum active server grants
