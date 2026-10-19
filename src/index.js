@@ -24,7 +24,8 @@ client.on(Events.InteractionCreate,async i=>{
     if(i.isChatInputCommand()) {
       const cmd=client.commands.get(i.commandName);
       if(cmd) await cmd.execute(i);
-    } else if(i.isStringSelectMenu()&&i.customId==='radio:select') {\n      await handleRadioSelect(i);\n    } else if(i.isButton()&&i.customId.startsWith('help:')) {
+    } else if(i.isStringSelectMenu()&&i.customId==='radio:select') {
+      await handleRadioSelect(i);\n    } else if(i.isButton()&&i.customId.startsWith('help:')) {
       await handleHelpButton(i);
     } else if(i.isButton()&&i.customId.startsWith('fun:')) {
       await handleFunButton(i);
