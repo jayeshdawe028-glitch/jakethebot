@@ -6,12 +6,16 @@ import { db } from './database.js';
 let manager = null;
 
 export function setupMusic(client) {
-  if (!config.lavahostKey) {
-    console.log('[Music] LAVAHOST_KEY is not set; music commands will explain setup.');
-    return null;
-  }
+  const nodes = config.lavahostKey
+    ? [{ id: 'lavahost', host: 'gateway.lavahost.net', port: 443, authorization: config.lavahostKey, secure: true }]
+    : [
+        { id: 'nazha-sg1', host: 'sg-1.nazha.online', port: 443, authorization: 'https://discord.gg/XeSCnk57ZF', secure: true },
+        { id: 'nazha-sg2', host: 'sg-2.nazha.online', port: 443, authorization: 'https://discord.gg/XeSCnk57ZF', secure: true },
+        { id: 'nazha-sg3', host: 'sg-3.nazha.online', port: 443, authorization: 'https://discord.gg/XeSCnk57ZF', secure: true },
+        { id: 'nazha-main', host: 'lavalink.nazha.online', port: 443, authorization: 'nazhafreelava', secure: true }
+      ];
   manager = new LavalinkManager({
-    nodes: [{ id: 'lavahost', host: 'gateway.lavahost.net', port: 443, authorization: config.lavahostKey, secure: true }],
+    nodes,
     sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
     client: { id: config.clientId, username: 'Puchki' },
     autoSkip: true,
@@ -57,7 +61,7 @@ async function restore247(client) {
 function notConfigured(interaction) {
   if (manager) return false;
   interaction.reply({
-    content: '🎵 Music needs a hosted Lavalink key. Open https://lavahost.net/, create an API key, then add LAVAHOST_KEY=your_key to your VPS .env and restart Puchki. Never post the key in chat or GitHub.',
+    content: '🎵 Music service is not connected yet. Puchki tries free public Lavalink nodes automatically; check the bot logs and try again in a minute. For a more controlled hosted endpoint, optionally add LAVAHOST_KEY to .env.',
     ephemeral: true
   }).catch(() => {});
   return true;
