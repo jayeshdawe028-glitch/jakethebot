@@ -118,7 +118,7 @@ export const commands = [
       }
       if(sub==='activate'&&p) return i.reply({content:`This server already has Premium until <t:${Math.floor(p.expires_at/1000)}:F>. Use /premium renew.`,ephemeral:true});
       if(sub==='renew'&&!p) return i.reply({content:'No active Premium for that server. Activate it first.',ephemeral:true});
-      if(!owner&&staffUsage(actor)>=staff.slot_limit) return i.reply({content:`Your limit is full (${staffUsage(actor)}/${staff.slot_limit}). Ask the owner to raise it or free a slot.`,ephemeral:true});
+      if(sub==='activate'&&!owner&&staffUsage(actor)>=staff.slot_limit) return i.reply({content:`Your limit is full (${staffUsage(actor)}/${staff.slot_limit}). Ask the owner to raise it or free a slot.`,ephemeral:true});
       const expires=sub==='renew'?Math.max(p.expires_at,now)+30*DAY:now+30*DAY;
       if(sub==='renew') db.prepare('UPDATE premium_entitlements SET expires_at=? WHERE id=?').run(expires,p.id);
       else db.prepare("INSERT INTO premium_entitlements(subject_type,subject_id,granted_by,granted_at,expires_at,source,active) VALUES('guild',?,?,?,?,?,1)").run(guildId,actor,now,expires,owner?'owner':'staff');
