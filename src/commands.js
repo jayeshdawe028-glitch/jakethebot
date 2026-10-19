@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { config } from './config.js';
 import { moderationCommands } from './moderation.js';
-import { musicCommands } from './music.js';
+import { radioCommands } from './music.js';
 import { db, DAY, isOwner, getStaff, activeGuildPremium, audit } from './database.js';
 
 const green = 0x8B5CF6;
@@ -11,7 +11,7 @@ const commandList = [
   {name:'Management',id:'help:management'},
   {name:'Extra',id:'help:extra'},
   {name:'Fun',id:'help:fun'},
-  {name:'Music',id:'help:music'}
+  {name:'Radio',id:'help:radio'}
 ];
 const helpPages = {
   home: {title:'🐾 Puchki • Command Center', description:'Here are the commands that are implemented in this version. Choose a category below.', fields:[
@@ -153,7 +153,7 @@ export const commands = [
     }
   },
   ...moderationCommands,
-  ...musicCommands
+  ...radioCommands
 ];
 
 export async function handleHelpButton(i) {
