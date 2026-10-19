@@ -33,7 +33,7 @@ export async function handleFunMessage(message) {
     return true;
   }
 
-  if (/^!microclear\b/i.test(content)) {
+  if (/^!microclear\\b/i.test(content)) {
     if (!message.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
       await message.reply('⛔ Is command ke liye **Manage Messages** permission chahiye.');
       return true;
@@ -43,38 +43,43 @@ export async function handleFunMessage(message) {
       await message.reply('Mujhe is channel mein **Manage Messages** permission do.');
       return true;
     }
-    const phrase = content.replace(/^!microclear\b/i, '').trim();
-    if (phrase.length < 3) {
-      await message.reply('Usage: `!Microclear @jake vc aaa`\nKam se kam 3 characters ka exact text do jise delete karna hai.');
-      return true;
-    }
-    await message.reply(`🔎 Is channel mein matching messages search kar raha hoon: \`${phrase.slice(0, 150)}\``);
+
+    await message.reply('🔎 **Microclear** is channel ke repeated spam messages detect kar raha hai...');
     let before;
     let scanned = 0;
-    let deleted = 0;
     const maxScan = 5000;
-    const needle = phrase.toLowerCase();
+    const messages = [];
     while (scanned < maxScan) {
-      const batch = await message.channel.messages.fetch({ limit: 100, ...(before ? { before } : {}) }).catch(() => null);
+      const batch = await message.channel.messages.fetch({ limit: Math.min(100, maxScan - scanned), ...(before ? { before } : {}) }).catch(() => null);
       if (!batch || batch.size === 0) break;
       before = batch.last().id;
       scanned += batch.size;
-      const matches = batch.filter(m =>
-        m.id !== message.id &&
-        m.author.id !== message.client.user.id &&
-        m.content.toLowerCase().includes(needle)
-      );
-      for (const m of matches.values()) {
-        try {
-          await m.delete();
-          deleted++;
-        } catch (error) {
-          if (error?.code !== 10008 && error?.code !== 50013) console.error('[Microclear delete]', error);
-        }
-      }
+      messages.push(...batch.values());
       if (batch.size < 100) break;
     }
-    await message.channel.send(`🧹 **Microclear complete!** Deleted **${deleted}** matching message(s), scanned **${scanned}** messages in this channel.\n${scanned >= maxScan ? 'Search limit reached (5,000 messages); run again to scan older history.' : 'Only this channel was searched.'}`);
+
+    const normalize = m => m.content.trim().toLowerCase().replace(/\\s+/g, ' ');
+    const groups = new Map();
+    for (const m of messages) {
+      if (m.id === message.id || m.author.id === message.client.user.id) continue;
+      const key = normalize(m);
+      if (key.length < 3) continue;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(m);
+    }
+
+    const spamMessages = [...groups.values()].filter(group => group.length >= 3).flat();
+    let deleted = 0;
+    for (const m of spamMessages) {
+      try {
+        await m.delete();
+        deleted++;
+      } catch (error) {
+        if (error?.code !== 10008 && error?.code !== 50013) console.error('[Microclear delete]', error);
+      }
+    }
+
+    await message.channel.send(`🧹 **Microclear complete!** Deleted **${deleted}** messages from repeated text groups (same text appearing 3+ times). Scanned **${scanned}** messages in this channel.\\n${scanned >= maxScan ? 'Search limit reached (5,000 messages); older history may contain more spam.' : 'Only this channel was searched.'}`);
     return true;
   }
   return false;
