@@ -26,6 +26,13 @@ CREATE TABLE IF NOT EXISTS premium_entitlements (
   removed_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS idx_premium_active ON premium_entitlements(active, expires_at);
+CREATE TABLE IF NOT EXISTS music_247 (
+  guild_id TEXT PRIMARY KEY,
+  voice_channel_id TEXT NOT NULL,
+  text_channel_id TEXT NOT NULL,
+  enabled_by TEXT NOT NULL,
+  enabled_at INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS premium_audit (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   actor_id TEXT NOT NULL,
