@@ -12,7 +12,7 @@ const commandList = [
 ];
 const helpPages = {
   home: {title:'🐾 Puchki • Command Center', description:'Here are the commands that are implemented in this version. Choose a category below.', fields:[
-    {name:'✅ Working now',value:'`/ping` — check bot latency\n`/help` — open this command guide\n`/premium info` — check this server’s Premium status',inline:false},
+    {name:'✅ Working now',value:'`/ping` — check bot latency\n`/help` — open this command guide\n`/premium info` — check this server’s Premium status\n\`/ban\`, \`/kick\`, \`/timeout\`, \`/untimeout\`, \`/warn\`, \`/warnings\`, \`/purge\` — moderation tools\n\`/modsetup\` — configure moderation logs',inline:false},
     {name:'👑 Premium management',value:'Authorized owner/staff commands: activate, renew and remove server Premium. Owner-only tools manage Premium staff and user grants.',inline:false},
     {name:'🚧 Planned — not available yet',value:'Antinuke • AutoMod • AntiRaid • Tickets • Welcome/Leave • Autorole • Logging • Giveaways • Leveling',inline:false}
   ]},
