@@ -34,8 +34,8 @@ const helpPages = {
   ]},
   fun: {title:'🎉 Fun Zone',description:'Prank commands only — no real ban or kick is performed.',fields:[
     {name:'😈 Fake Moderation Pranks',value:'`p!ban @member` — professional-looking **FAKE BAN** notice with a funny warning and appeal buttons.\n`p!kick @member` — matching **FAKE KICK** prank notice.\nNo actual moderation action is taken.',inline:false},
-    {name:'🧹 Microclear',value:'`!Microclear <text>` — delete messages containing that text from the **current channel**. Example: `!Microclear @jake vc aaa`. Requires Manage Messages; scans up to 5,000 recent messages per run.',inline:false},
-    {name:'⚠️ Note',value:'Microclear permanently deletes matching messages in this channel. Check the search text before running it.',inline:false}
+    {name:'🧹 Microclear',value:'`!Microclear <text>` — deletes every message containing the text you provide from the **current channel**, including bot-posted spam. Example: `!Microclear @jake vc aaa`. Requires Manage Messages; scans up to 5,000 recent messages per run.',inline:false},
+    {name:'⚠️ Note',value:'Microclear permanently deletes all messages matching your supplied text in this channel, including bot messages. The command message itself is kept. Check the text before running it.',inline:false}
   ]}
 };
 const helpRow = active => new ActionRowBuilder().addComponents(commandList.map(c =>
