@@ -1,6 +1,5 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } from 'discord.js';
 
-const purple = 0x8B5CF6;
 const targetFrom = (message, raw) => message.mentions.members.first()
   || message.guild.members.cache.find(m => m.user.username.toLowerCase() === raw.replace(/^<@!?\d+>$/, '').toLowerCase());
 
