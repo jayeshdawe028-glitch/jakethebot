@@ -108,7 +108,7 @@ export const commands = [
       }
       if(!owner&&!staff) return i.reply({content:'You are not authorized to manage Premium.',ephemeral:true});
       const guildId=i.options.getString('server-id',true).trim();
-      if(!/^\\d{17,20}$/.test(guildId)) return i.reply({content:'Enter a valid Discord server ID.',ephemeral:true});
+      if(!/^\d{17,20}$/.test(guildId)) return i.reply({content:'Enter a valid Discord server ID.',ephemeral:true});
       let p=activeGuildPremium(guildId), now=Date.now();
       if(sub==='remove') {
         if(!p) return i.reply({content:'No active Premium found for that server.',ephemeral:true});
