@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { config } from './config.js';
 import { moderationCommands } from './moderation.js';
+import { musicCommands } from './music.js';
 import { db, DAY, isOwner, getStaff, activeGuildPremium, audit } from './database.js';
 
 const green = 0x8B5CF6;
@@ -9,7 +10,8 @@ const commandList = [
   {name:'Security',id:'help:security'},
   {name:'Management',id:'help:management'},
   {name:'Extra',id:'help:extra'},
-  {name:'Fun',id:'help:fun'}
+  {name:'Fun',id:'help:fun'},
+  {name:'Music',id:'help:music'}
 ];
 const helpPages = {
   home: {title:'🐾 Puchki • Command Center', description:'Here are the commands that are implemented in this version. Choose a category below.', fields:[
@@ -31,6 +33,11 @@ const helpPages = {
     {name:'💎 Premium — everyone',value:'`/premium info` — check Premium status for the current server'},
     {name:'👑 Premium — authorized staff',value:'`/premium activate server-id:<ID>` — grant 30 days\n`/premium renew server-id:<ID>` — add 30 days\n`/premium remove server-id:<ID>` — remove active Premium'},
     {name:'🔒 Premium — owner only',value:'`/premium staff-add`, `staff-limit`, `staff-remove`, `staff-list`, `grant-user`, `revoke-user`, `guildlist`\nUse Discord’s slash-command options to see required arguments.'}
+  ]},
+  music: {title:'🎵 Music Zone',description:'Hosted music playback; requires LAVAHOST_KEY in the VPS environment.',fields:[
+    {name:'Playback',value:'`/play song:<name or YouTube/Spotify URL>` — search and play\n`/skip` — skip current track\n`/pause` — pause\n`/resume` — resume\n`/stop` — stop and clear\n`/queue` — show upcoming tracks',inline:false},
+    {name:'24/7 Voice',value:'`/247 enable` — stay in your current voice channel and try to rejoin after restart\n`/247 disable` — leave and disable. Requires Manage Server permission.',inline:false},
+    {name:'Setup',value:'Add `LAVAHOST_KEY` to the VPS `.env`. Free hosted plan advertises one player and 100 track plays per day; limits can change.',inline:false}
   ]},
   fun: {title:'🎉 Fun Zone',description:'Prank commands only — no real ban or kick is performed.',fields:[
     {name:'😈 Fake Moderation Pranks',value:'`p!ban @member` — professional-looking **FAKE BAN** notice with a funny warning and appeal buttons.\n`p!kick @member` — matching **FAKE KICK** prank notice.\nNo actual moderation action is taken.',inline:false},
@@ -145,7 +152,8 @@ export const commands = [
       return i.reply({content:`Premium ${sub==='renew'?'renewed':'activated'} until <t:${Math.floor(expires/1000)}:F>.`,ephemeral:true});
     }
   },
-  ...moderationCommands
+  ...moderationCommands,
+  ...musicCommands
 ];
 
 export async function handleHelpButton(i) {
