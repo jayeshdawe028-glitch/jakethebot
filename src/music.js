@@ -18,7 +18,7 @@ export function setupMusic(client) {
     playerOptions: {
       defaultSearchPlatform: 'ytmsearch',
       onDisconnect: { autoReconnect: true, destroyPlayer: false },
-      onEmptyQueue: { destroyAfterMs: 30_000 }
+      onEmptyQueue: { destroyAfterMs: 2_000_000_000 }
     },
     queueOptions: { maxPreviousTracks: 10 }
   });
