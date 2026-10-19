@@ -25,7 +25,8 @@ client.on(Events.InteractionCreate,async i=>{
       const cmd=client.commands.get(i.commandName);
       if(cmd) await cmd.execute(i);
     } else if(i.isStringSelectMenu()&&i.customId==='radio:select') {
-      await handleRadioSelect(i);\n    } else if(i.isButton()&&i.customId.startsWith('help:')) {
+      await handleRadioSelect(i);
+    } else if(i.isButton()&&i.customId.startsWith('help:')) {
       await handleHelpButton(i);
     } else if(i.isButton()&&i.customId.startsWith('fun:')) {
       await handleFunButton(i);
