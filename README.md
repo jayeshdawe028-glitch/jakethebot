@@ -9,7 +9,8 @@
 > This is the first working starter milestone, not yet the full feature parity build. Security, ticketing, moderation, voice controls, leveling and other modules are roadmap work. Premium records are implemented, but premium-only feature gates still need to be wired into later modules.
 
 ## Features included
-- `/ping` and interactive `/help` category panel
+- `/ping` and interactive `/help` category panel with a Music category
+- Hosted music playback via Lavahost/Lavalink (optional `LAVAHOST_KEY`): `/play`, `/skip`, `/pause`, `/resume`, `/stop`, `/queue`, `/247 enable`, `/247 disable`
 - Moderation: `/ban`, `/kick`, `/timeout`, `/untimeout`, `/warn`, `/warnings view`, `/warnings clear`, `/purge`
 - `/modsetup log-channel` and `/modsetup view` for per-server moderation logs
 - Moderation warnings stored persistently in SQLite; role hierarchy and permission checks are applied
@@ -25,7 +26,7 @@
 - Ubuntu 22.04/24.04 recommended, Node.js 22 (or Docker)
 - Discord application created in Discord Developer Portal
 - Invite scopes: `bot` and `applications.commands`
-- Enable the **Message Content Intent** in Discord Developer Portal (Bot → Privileged Gateway Intents) for `p!ban`, `p!kick`, and `!Microclear` to work. The bot also uses Guild Messages intent.
+- Enable the **Message Content Intent** in Discord Developer Portal (Bot → Privileged Gateway Intents) for `p!ban`, `p!kick`, and `!Microclear` to work. The bot also uses Guild Messages and Guild Voice States intents.
 
 ## Configure
 ```bash
@@ -76,7 +77,7 @@ With `GUILD_ID` set, command registration is fast for the specified test server.
 - `/purge amount [user]` — bulk-delete up to 100 recent messages (Discord excludes messages older than 14 days)
 - `/modsetup log-channel channel` — configure a moderation log channel; `/modsetup view` — inspect setting
 
-Fun prefix commands: `p!ban @member` and `p!kick @member` post clearly labelled prank notices only; they do not ban or kick anyone. Buttons reply with joke appeals. `!Microclear` automatically scans the current channel's latest 5,000 messages, detects text repeated 3 or more times (ignoring case and extra whitespace), and deletes all messages in those repeated-text groups, including bot-posted spam. The command message itself is preserved. It requires Manage Messages for both the invoking user and bot. This is destructive; review the channel before running it.\n\nThe bot needs appropriate Discord permissions and a role above the members it moderates. Auto-moderation of message content is not enabled in this initial moderation update; that requires the Message Content intent and separate configuration.
+Fun prefix commands: `p!ban @member` and `p!kick @member` post clearly labelled prank notices only; they do not ban or kick anyone. Buttons reply with joke appeals. `!Microclear` automatically scans the current channel's latest 5,000 messages, detects text repeated 3 or more times (ignoring case and extra whitespace), and deletes all messages in those repeated-text groups, including bot-posted spam. The command message itself is preserved. It requires Manage Messages for both the invoking user and bot. This is destructive; review the channel before running it.\n\n### Music setup\n\nMusic uses a hosted Lavalink service to keep audio processing off the small VPS. Create a key at https://lavahost.net/ and add `LAVAHOST_KEY=your_lavahost_key_here` to the existing VPS `.env` (never commit the real key). Then rebuild and restart, and deploy slash commands. `/play song:<query-or-URL>` accepts song searches and YouTube/Spotify URLs when supported by the provider. `/247 enable` saves the current voice channel and attempts to rejoin after a bot restart; `/247 disable` turns it off. The free hosted plan currently advertises one simultaneous player and 100 track plays/day; check the provider dashboard for current limits. A 24/7 voice connection still depends on Discord, the hosted provider, and the bot process staying online.\n\nThe bot needs appropriate Discord permissions and a role above the members it moderates. Auto-moderation of message content is not enabled in this initial moderation update; that requires the Message Content intent and separate configuration.
 
 ## Premium commands
 - `/premium staff-add user limit` — Owner grants staff rights and defines their maximum active server grants
