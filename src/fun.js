@@ -63,7 +63,7 @@ export async function handleFunMessage(message) {
     for (const m of messages) {
       if (m.id === message.id || m.author.id === message.client.user.id) continue;
       const key = normalize(m);
-      if (key.length < 3) continue;
+      if (key.length < 1) continue;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(m);
     }
