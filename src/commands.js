@@ -37,7 +37,7 @@ export const commands = [
     async execute(i) {
       const p=helpPages.home;
       const e=new EmbedBuilder().setColor(green).setTitle(p.title).setDescription(p.description).addFields(p.fields)
-        .addFields({name:'🆘 Support Server',value:`[Join Support] (${config.supportUrl})`,inline:true},{name:'▶️ Developer',value:`[AlwaysJake on YouTube](${config.youtubeUrl})`,inline:true})
+        .addFields({name:'🆘 Support Server',value:`[Join Support](${config.supportUrl})`,inline:true},{name:'▶️ Developer',value:`[AlwaysJake on YouTube](${config.youtubeUrl})`,inline:true})
         .setFooter({text:'Puchki • Built by AlwaysJake'});
       await i.reply({embeds:[e],components:[helpRow('home')],ephemeral:true});
     }
