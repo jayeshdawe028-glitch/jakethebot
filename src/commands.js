@@ -34,10 +34,10 @@ const helpPages = {
     {name:'👑 Premium — authorized staff',value:'`/premium activate server-id:<ID>` — grant 30 days\n`/premium renew server-id:<ID>` — add 30 days\n`/premium remove server-id:<ID>` — remove active Premium'},
     {name:'🔒 Premium — owner only',value:'`/premium staff-add`, `staff-limit`, `staff-remove`, `staff-list`, `grant-user`, `revoke-user`, `guildlist`\nUse Discord’s slash-command options to see required arguments.'}
   ]},
-  music: {title:'🎵 Music Zone',description:'Hosted music playback; requires LAVAHOST_KEY in the VPS environment.',fields:[
+  music: {title:'🎵 Music Zone',description:'Free public Lavalink nodes are tried automatically; no API key or extra setup required. An optional LAVAHOST_KEY can be configured for a hosted endpoint.',fields:[
     {name:'Playback',value:'`/play song:<name or YouTube/Spotify URL>` — search and play\n`/skip` — skip current track\n`/pause` — pause\n`/resume` — resume\n`/stop` — stop and clear\n`/queue` — show upcoming tracks',inline:false},
     {name:'24/7 Voice',value:'`/247 enable` — stay in your current voice channel and try to rejoin after restart\n`/247 disable` — leave and disable. Requires Manage Server permission.',inline:false},
-    {name:'Setup',value:'Add `LAVAHOST_KEY` to the VPS `.env`. Free hosted plan advertises one player and 100 track plays per day; limits can change.',inline:false}
+    {name:'Setup',value:'No key needed by default: Puchki tries community-run public Lavalink nodes. They may be busy or offline, so playback is not guaranteed. Optionally configure `LAVAHOST_KEY` for Lavahost.',inline:false}
   ]},
   fun: {title:'🎉 Fun Zone',description:'Prank commands only — no real ban or kick is performed.',fields:[
     {name:'😈 Fake Moderation Pranks',value:'`p!ban @member` — professional-looking **FAKE BAN** notice with a funny warning and appeal buttons.\n`p!kick @member` — matching **FAKE KICK** prank notice.\nNo actual moderation action is taken.',inline:false},
