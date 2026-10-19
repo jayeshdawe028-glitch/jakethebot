@@ -7,18 +7,10 @@ import { spawn } from 'node:child_process';
 import { config } from './config.js';
 import { db } from './database.js';
 
-const RADIO_API = 'https://de1.api.radio-browser.info/json';
+// Keep this list simple: add future tested direct stream URLs here.
 const stations = [
-  { name: 'Radio Mirchi', terms: ['Radio Mirchi'] },
-  { name: 'BIG FM', terms: ['BIG FM', 'Big FM 92.7'] },
-  { name: 'MY FM', terms: ['MY FM', 'My FM 94.3'] },
-  { name: 'Radio City Hindi', terms: ['Radio City Hindi', 'Radio City'] },
-  { name: 'Red FM', terms: ['Red FM'] },
-  { name: 'Mirchi Love', terms: ['Mirchi Love'] },
-  { name: 'Mirchi 90s', terms: ['Mirchi 90'] },
-  { name: 'Vividh Bharati', terms: ['Vividh Bharati'] },
-  { name: 'AIR FM Gold', terms: ['AIR FM Gold'] },
-  { name: 'Hindi Retro', terms: ['Hindi Retro'] }
+  { name: 'Bollywood Hits', url: 'https://drive.uber.radio/uber/lrbollywood/icecast.audio' },
+  { name: 'Bollywood Now', url: 'https://drive.uber.radio/uber/bollywoodnow/icecast.audio' }
 ];
 const sessions = new Map();
 
@@ -31,31 +23,20 @@ export function setupMusic(client) {
 }
 
 async function findStations() {
-  const found = [];
-  for (const preferred of stations) {
-    for (const term of preferred.terms) {
-      try {
-        const url = new URL(RADIO_API + '/stations/search');
-        url.search = new URLSearchParams({ name: term, countrycode: 'IN', hidebroken: 'true', limit: '30', order: 'votes', reverse: 'true' }).toString();
-        const res = await fetch(url, { headers: { 'User-Agent': 'PuchkiDiscordRadio/1.0' }, signal: AbortSignal.timeout(7000) });
-        if (!res.ok) continue;
-        const list = await res.json();
-        const match = list.find(s => s.url_resolved && /^https?:\/\//i.test(s.url_resolved) && (s.lastcheckok === 1 || s.lastcheckok === true));
-        if (match) { found.push({ name: preferred.name, url: match.url_resolved }); break; }
-      } catch {}
-    }
-  }
-  if (!found.length) throw new Error('No working radio streams found in Radio Browser.');
-  return found;
+  return stations;
 }
 
 function stopSession(guildId) {
   const old = sessions.get(guildId);
   if (!old) return;
+  sessions.delete(guildId);
   old.process?.kill('SIGKILL');
   old.player?.stop(true);
-  old.connection?.destroy();
-  sessions.delete(guildId);
+  if (old.connection && old.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+    try { old.connection.destroy(); } catch (e) {
+      console.error('[Radio] Voice connection cleanup:', e.message);
+    }
+  }
 }
 
 async function playStation(guild, voice, station) {
@@ -88,7 +69,11 @@ async function playStation(guild, voice, station) {
     sessions.set(guild.id, { connection, player, process: ffmpeg, station, voiceChannelId: voice.id });
     return station;
   } catch (e) {
-    connection.destroy();
+    if (connection.state.status !== VoiceConnectionStatus.Destroyed) {
+      try { connection.destroy(); } catch (cleanupError) {
+        console.error('[Radio] Voice connection cleanup:', cleanupError.message);
+      }
+    }
     throw e;
   }
 }
@@ -122,11 +107,11 @@ const radioCommands = [
       await i.deferReply({ ephemeral: true });
       try {
         const list = await findStations();
-        const select = new StringSelectMenuBuilder().setCustomId('radio:select').setPlaceholder('Choose a Hindi FM station').setMinValues(1).setMaxValues(1)
-          .addOptions(list.slice(0, 25).map((s, n) => ({ label: s.name.slice(0, 100), description: 'Live radio stream', value: String(n) })));
+        const select = new StringSelectMenuBuilder().setCustomId('radio:select').setPlaceholder('Choose a radio station').setMinValues(1).setMaxValues(1)
+          .addOptions(list.slice(0, 25).map((s, n) => ({ label: s.name.slice(0, 100), description: 'Live Bollywood music stream', value: String(n) })));
         i.client.radioStationCache ||= new Map();
         i.client.radioStationCache.set(i.user.id + ':' + i.guildId, list);
-        return i.editReply({ content: '📻 Puchki Hindi FM — station select karo. Direct stream player, Lavalink ki zaroorat nahi.', components: [new ActionRowBuilder().addComponents(select)] });
+        return i.editReply({ content: '📻 Puchki Radio — station select karo. Direct stream player, Lavalink ki zaroorat nahi.', components: [new ActionRowBuilder().addComponents(select)] });
       } catch (e) {
         console.error('[Radio station list]', e.message);
         return i.editReply('Radio station list abhi available nahi hai. Thodi der baad try karo.');
@@ -134,7 +119,7 @@ const radioCommands = [
     }
   },
   {
-    data: new SlashCommandBuilder().setName('247').setDescription('Keep the selected FM radio running 24/7.')
+    data: new SlashCommandBuilder().setName('247').setDescription('Keep the selected radio running 24/7.')
       .addSubcommand(s => s.setName('enable').setDescription('Save current radio and restore after restart.'))
       .addSubcommand(s => s.setName('disable').setDescription('Disable 24/7 radio and leave voice.')),
     async execute(i) {
@@ -170,7 +155,7 @@ export async function handleRadioSelect(i) {
     await i.editReply({ content: '🔴 Now live: ' + station.name + '\n📻 Puchki is streaming in <#' + voice.id + '>. Use /radio to change station or /247 enable for 24/7.', components: [] });
   } catch (e) {
     console.error('[Radio playback]', e);
-    await i.editReply({ content: 'Ye stream play nahi hui. /radio se doosra station try karo. Agar FFmpeg missing hai to container rebuild zaroori hai.', components: [] });
+    await i.editReply({ content: 'Ye stream play nahi hui. Voice channel permissions check karo aur /radio se dobara try karo.', components: [] });
   }
   return true;
 }
