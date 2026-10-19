@@ -1,9 +1,43 @@
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits, StringSelectMenuBuilder, ActionRowBuilder } from 'discord.js';
 import { LavalinkManager } from 'lavalink-client';
 import { config } from './config.js';
 import { db } from './database.js';
 
 let manager = null;
+const RADIO_API = 'https://de1.api.radio-browser.info/json';
+const preferredStations = [
+  { name: 'Radio Mirchi', terms: ['Radio Mirchi'] },
+  { name: 'BIG FM', terms: ['BIG FM', 'Big FM 92.7'] },
+  { name: 'MY FM', terms: ['MY FM', 'My FM 94.3'] },
+  { name: 'Radio City Hindi', terms: ['Radio City'] },
+  { name: 'Red FM', terms: ['Red FM'] },
+  { name: 'Mirchi Love', terms: ['Mirchi Love'] },
+  { name: 'Mirchi 90s', terms: ['Mirchi 90'] },
+  { name: 'Vividh Bharati', terms: ['Vividh Bharati'] },
+  { name: 'AIR FM Gold', terms: ['AIR FM Gold'] },
+  { name: 'Hindi Retro', terms: ['Hindi Retro'] }
+];
+
+async function findStations() {
+  const all = [];
+  for (const preferred of preferredStations) {
+    let match = null;
+    for (const term of preferred.terms) {
+      try {
+        const url = new URL(RADIO_API + '/stations/search');
+        url.search = new URLSearchParams({ name: term, countrycode: 'IN', hidebroken: 'true', limit: '20', order: 'votes', reverse: 'true' }).toString();
+        const response = await fetch(url, { headers: { 'User-Agent': 'PuchkiDiscordRadio/1.0' }, signal: AbortSignal.timeout(7000) });
+        if (!response.ok) continue;
+        const stations = await response.json();
+        match = stations.find(s => s.url_resolved && /^https?:\/\//i.test(s.url_resolved) && (s.lastcheckok === 1 || s.lastcheckok === true)) || null;
+        if (match) break;
+      } catch {}
+    }
+    if (match && !all.some(s => s.stationuuid === match.stationuuid)) all.push({ ...match, displayName: preferred.name });
+  }
+  if (!all.length) throw new Error('No working Hindi radio streams found.');
+  return all;
+}
 
 export function setupMusic(client) {
   const nodes = config.lavahostKey
@@ -19,58 +53,26 @@ export function setupMusic(client) {
     sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
     client: { id: config.clientId, username: 'Puchki' },
     autoSkip: true,
-    playerOptions: {
-      defaultSearchPlatform: 'ytmsearch',
-      onDisconnect: { autoReconnect: true, destroyPlayer: false },
-      onEmptyQueue: { destroyAfterMs: 2_000_000_000 }
-    },
-    queueOptions: { maxPreviousTracks: 10 }
+    playerOptions: { defaultSearchPlatform: 'ytmsearch', onDisconnect: { autoReconnect: true, destroyPlayer: false }, onEmptyQueue: { destroyAfterMs: 2000000000 } },
+    queueOptions: { maxPreviousTracks: 0 }
   });
   client.lavalink = manager;
   client.on('raw', data => manager.sendRawData(data));
   client.once('ready', async () => {
     try {
       await manager.init({ ...client.user });
-      console.log('[Music] Connected manager to hosted Lavalink.');
-      setTimeout(() => restore247(client).catch(e => console.error('[Music 24/7 restore]', e)), 12000);
-    } catch (error) {
-      console.error('[Music] Lavalink init failed:', error);
-    }
+      console.log('[Radio] Audio manager initialized.');
+      setTimeout(() => restore247(client).catch(e => console.error('[Radio 24/7 restore]', e)), 12000);
+    } catch (error) { console.error('[Radio] Audio manager init failed:', error); }
   });
-  manager.on('nodeError', (node, error) => console.error('[Music] Lavalink node error:', node?.id, error));
+  manager.on('nodeError', (node, error) => console.error('[Radio] Audio node error:', node?.id, error));
   return manager;
 }
 
-async function restore247(client) {
-  if (!manager) return;
-  for (const row of db.prepare('SELECT * FROM music_247').all()) {
-    const guild = client.guilds.cache.get(row.guild_id);
-    const voice = guild?.channels.cache.get(row.voice_channel_id);
-    const textChannel = guild?.channels.cache.get(row.text_channel_id);
-    if (!guild || !voice?.isVoiceBased()) continue;
-    try {
-      const player = await getPlayer(guild, voice.id, textChannel?.id || voice.id);
-      await player.connect();
-      console.log('[Music 24/7] Rejoined ' + guild.name + ' voice channel.');
-    } catch (error) {
-      console.error('[Music 24/7 restore failed]', row.guild_id, error);
-    }
-  }
-}
-
-function notConfigured(interaction) {
-  if (manager) return false;
-  interaction.reply({
-    content: '🎵 Music service is not connected yet. Puchki tries free public Lavalink nodes automatically; check the bot logs and try again in a minute. For a more controlled hosted endpoint, optionally add LAVAHOST_KEY to .env.',
-    ephemeral: true
-  }).catch(() => {});
-  return true;
-}
-
-function voiceRequired(interaction) {
-  const voice = interaction.member?.voice?.channel || null;
+function voiceRequired(i) {
+  const voice = i.member?.voice?.channel || null;
   if (!voice) {
-    interaction.reply({ content: 'Pehle kisi voice channel mein join ho jao, phir music command chalao. 🎧', ephemeral: true }).catch(() => {});
+    i.reply({ content: 'Pehle kisi voice channel mein join ho jao, phir /radio chalao. 📻', ephemeral: true }).catch(() => {});
     return null;
   }
   return voice;
@@ -78,122 +80,104 @@ function voiceRequired(interaction) {
 
 async function getPlayer(guild, voiceChannelId, textChannelId) {
   let player = manager.getPlayer(guild.id);
-  if (!player) {
-    player = await manager.createPlayer({ guildId: guild.id, voiceChannelId, textChannelId, selfDeaf: true, volume: 80 });
-  }
+  if (!player) player = await manager.createPlayer({ guildId: guild.id, voiceChannelId, textChannelId, selfDeaf: true, volume: 80 });
   return player;
 }
 
-const musicCommands = [
+async function playStation(guild, voice, text, station) {
+  if (!manager) throw new Error('Radio audio service is not ready.');
+  const player = await getPlayer(guild, voice.id, text.id);
+  await player.connect();
+  const streamUrl = station.url_resolved || station.url;
+  const result = await player.search({ query: streamUrl }, { id: 'puchki-radio', username: 'Puchki Radio' });
+  const track = result?.tracks?.[0];
+  if (!track) throw new Error('Audio node rejected the radio stream URL.');
+  if (typeof player.queue.clear === 'function') player.queue.clear();
+  await player.queue.add(track);
+  await player.play();
+  return player;
+}
+
+async function restore247(client) {
+  if (!manager) return;
+  for (const row of db.prepare('SELECT * FROM radio_247').all()) {
+    const guild = client.guilds.cache.get(row.guild_id);
+    const voice = guild?.channels.cache.get(row.voice_channel_id);
+    const text = guild?.channels.cache.get(row.text_channel_id);
+    if (!guild || !voice?.isVoiceBased()) continue;
+    try {
+      await playStation(guild, voice, text || voice, { name: row.station_name, url_resolved: row.stream_url, url: row.stream_url });
+      console.log('[Radio 24/7] Rejoined ' + guild.name + ' with ' + row.station_name);
+    } catch (error) { console.error('[Radio 24/7 restore failed]', row.guild_id, error); }
+  }
+}
+
+const radioCommands = [
   {
-    data: new SlashCommandBuilder().setName('play').setDescription('Search and play music from YouTube or a Spotify link.')
-      .addStringOption(o => o.setName('song').setDescription('Song name, YouTube URL, or Spotify URL').setRequired(true).setMaxLength(300)),
+    data: new SlashCommandBuilder().setName('radio').setDescription('Choose a live Hindi FM radio station.'),
     async execute(i) {
-      if (notConfigured(i)) return;
+      if (!manager) return i.reply({ content: '📻 Radio audio service is starting or unavailable. Check bot logs and try again.', ephemeral: true });
       const voice = voiceRequired(i); if (!voice) return;
-      await i.deferReply();
+      await i.deferReply({ ephemeral: true });
       try {
-        const query = i.options.getString('song', true).trim();
-        const player = await getPlayer(i.guild, voice.id, i.channelId);
-        await player.connect();
-        const result = await player.search({ query }, i.user);
-        const tracks = result?.tracks || [];
-        if (!tracks.length) return i.editReply('😿 Koi track nahi mila. Song name ya YouTube/Spotify link check karo.');
-        const chosen = tracks.slice(0, result.loadType === 'playlist' ? 50 : 1);
-        for (const track of chosen) await player.queue.add(track);
-        if (!player.playing) await player.play();
-        const first = chosen[0];
-        const link = first.info?.uri ? '\n[Open source](' + first.info.uri + ')' : '';
-        return i.editReply('🎶 **' + (first.info?.title || 'Track') + '** ' + (chosen.length > 1 ? 'and ' + (chosen.length - 1) + ' more track(s) added' : 'added to the queue') + '.' + link);
+        const stations = await findStations();
+        const select = new StringSelectMenuBuilder().setCustomId('radio:select').setPlaceholder('Choose a Hindi FM station').setMinValues(1).setMaxValues(1)
+          .addOptions(stations.map((s, n) => ({ label: s.displayName.slice(0, 100), description: (s.country || 'India') + (s.bitrate ? ' • ' + s.bitrate + ' kbps' : ''), value: String(n) })));
+        i.client.radioStationCache ||= new Map();
+        i.client.radioStationCache.set(i.user.id + ':' + i.guildId, stations);
+        return i.editReply({ content: '📻 Puchki Hindi FM — station select karo. Ye live radio hai, song search/queue nahi.', components: [new ActionRowBuilder().addComponents(select)] });
       } catch (error) {
-        console.error('[Music /play]', error);
-        return i.editReply('Music service connect nahi ho payi. Hosted service/key status check karo; /play dobara try karna.');
+        console.error('[Radio station list]', error);
+        return i.editReply('Radio directory abhi respond nahi kar rahi. Thodi der baad /radio dobara try karo.');
       }
     }
   },
   {
-    data: new SlashCommandBuilder().setName('skip').setDescription('Skip the current song.'),
+    data: new SlashCommandBuilder().setName('247').setDescription('Keep the selected FM radio in your voice channel 24/7.')
+      .addSubcommand(s => s.setName('enable').setDescription('Save the current radio station and stay in voice 24/7.'))
+      .addSubcommand(s => s.setName('disable').setDescription('Disable 24/7 radio and leave.')),
     async execute(i) {
-      if (notConfigured(i)) return;
-      const player = manager.getPlayer(i.guildId);
-      if (!player) return i.reply({ content: 'Abhi koi music player active nahi hai.', ephemeral: true });
-      await player.skip();
-      return i.reply('⏭️ Skipped the current track.');
-    }
-  },
-  {
-    data: new SlashCommandBuilder().setName('pause').setDescription('Pause the current song.'),
-    async execute(i) {
-      if (notConfigured(i)) return;
-      const player = manager.getPlayer(i.guildId);
-      if (!player) return i.reply({ content: 'Abhi kuch play nahi ho raha.', ephemeral: true });
-      await player.pause();
-      return i.reply('⏸️ Music paused.');
-    }
-  },
-  {
-    data: new SlashCommandBuilder().setName('resume').setDescription('Resume music playback.'),
-    async execute(i) {
-      if (notConfigured(i)) return;
-      const player = manager.getPlayer(i.guildId);
-      if (!player) return i.reply({ content: 'Abhi koi paused player nahi hai.', ephemeral: true });
-      await player.resume();
-      return i.reply('▶️ Music resumed.');
-    }
-  },
-  {
-    data: new SlashCommandBuilder().setName('stop').setDescription('Stop music and clear the queue.'),
-    async execute(i) {
-      if (!manager) { notConfigured(i); return; }
-      const player = manager.getPlayer(i.guildId);
-      if (player) await player.destroy();
-      return i.reply('⏹️ Music stopped and queue cleared.');
-    }
-  },
-  {
-    data: new SlashCommandBuilder().setName('queue').setDescription('Show the current song and upcoming queue.'),
-    async execute(i) {
-      if (notConfigured(i)) return;
-      const player = manager.getPlayer(i.guildId);
-      if (!player) return i.reply({ content: 'Queue empty hai. /play se song add karo.', ephemeral: true });
-      const current = player.queue.current;
-      const upcoming = player.queue.tracks || [];
-      const lines = [];
-      if (current) lines.push('**Now playing:** ' + (current.info?.title || 'Unknown track'));
-      lines.push(...upcoming.slice(0, 10).map((t, n) => (n + 1) + '. ' + (t.info?.title || 'Unknown track')));
-      return i.reply({ embeds: [new EmbedBuilder().setColor(0x8B5CF6).setTitle('🎶 Puchki Music Queue').setDescription(lines.join('\n') || 'Queue empty hai.').setFooter({ text: upcoming.length + ' upcoming track(s)' })] });
-    }
-  },
-  {
-    data: new SlashCommandBuilder().setName('247').setDescription('Keep Puchki in your voice channel 24/7.')
-      .addSubcommand(s => s.setName('enable').setDescription('Stay in your current voice channel 24/7.'))
-      .addSubcommand(s => s.setName('disable').setDescription('Disable 24/7 voice staying and leave.')),
-    async execute(i) {
-      if (notConfigured(i)) return;
+      if (!manager) return i.reply({ content: '📻 Radio audio service is unavailable right now.', ephemeral: true });
       const sub = i.options.getSubcommand();
-      if (!i.memberPermissions?.has(PermissionFlagsBits.ManageGuild) && i.user.id !== config.ownerId) {
-        return i.reply({ content: 'Is setting ke liye Manage Server permission chahiye.', ephemeral: true });
-      }
+      if (!i.memberPermissions?.has(PermissionFlagsBits.ManageGuild) && i.user.id !== config.ownerId) return i.reply({ content: 'Is setting ke liye Manage Server permission chahiye.', ephemeral: true });
       if (sub === 'enable') {
         const voice = voiceRequired(i); if (!voice) return;
-        await i.deferReply({ ephemeral: true });
-        try {
-          const player = await getPlayer(i.guild, voice.id, i.channelId);
-          await player.connect();
-          db.prepare('INSERT INTO music_247(guild_id,voice_channel_id,text_channel_id,enabled_by,enabled_at) VALUES(?,?,?,?,?) ON CONFLICT(guild_id) DO UPDATE SET voice_channel_id=excluded.voice_channel_id,text_channel_id=excluded.text_channel_id,enabled_by=excluded.enabled_by,enabled_at=excluded.enabled_at')
-            .run(i.guildId, voice.id, i.channelId, i.user.id, Date.now());
-          return i.editReply('🔒 24/7 enabled! Puchki will stay in this voice channel and try to rejoin after a bot restart while the hosted music service is available. Use /247 disable to turn it off.');
-        } catch (error) {
-          console.error('[Music /247 enable]', error);
-          return i.editReply('24/7 connection failed. Check the hosted music key/service and voice permissions.');
-        }
+        const player = manager.getPlayer(i.guildId);
+        const track = player?.queue?.current;
+        const url = track?.info?.uri || track?.info?.identifier;
+        if (!player || !track || !url) return i.reply({ content: 'Pehle /radio se station select karke radio chalao, phir /247 enable karo.', ephemeral: true });
+        const name = track.info?.title || 'Hindi FM Radio';
+        db.prepare('INSERT INTO radio_247(guild_id,voice_channel_id,text_channel_id,station_name,stream_url,enabled_by,enabled_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(guild_id) DO UPDATE SET voice_channel_id=excluded.voice_channel_id,text_channel_id=excluded.text_channel_id,station_name=excluded.station_name,stream_url=excluded.stream_url,enabled_by=excluded.enabled_by,enabled_at=excluded.enabled_at')
+          .run(i.guildId, voice.id, i.channelId, name, url, i.user.id, Date.now());
+        return i.reply({ content: '🔒 24/7 Radio enabled! Puchki will try to rejoin and resume this station after a bot restart. Public node and stream availability still matter.', ephemeral: true });
       }
-      db.prepare('DELETE FROM music_247 WHERE guild_id=?').run(i.guildId);
+      db.prepare('DELETE FROM radio_247 WHERE guild_id=?').run(i.guildId);
       const player = manager.getPlayer(i.guildId);
       if (player) await player.destroy();
-      return i.reply('👋 24/7 disabled. Puchki has left the voice channel.');
+      return i.reply('👋 24/7 radio disabled. Puchki has left the voice channel.');
     }
   }
 ];
 
-export { musicCommands };
+export async function handleRadioSelect(i) {
+  if (!i.isStringSelectMenu() || i.customId !== 'radio:select') return false;
+  if (!manager) { await i.reply({ content: 'Radio audio service is not ready.', ephemeral: true }); return true; }
+  const voice = voiceRequired(i); if (!voice) return true;
+  const stations = i.client.radioStationCache?.get(i.user.id + ':' + i.guildId);
+  const station = stations?.[Number(i.values[0])];
+  if (!station) { await i.reply({ content: 'Station list expire ho gayi. /radio dobara chalao.', ephemeral: true }); return true; }
+  await i.deferUpdate();
+  try {
+    await playStation(i.guild, voice, i.channel, station);
+    const title = station.displayName || station.name;
+    const streamUrl = station.url_resolved || station.url;
+    await i.editReply({ content: '🔴 Now live: ' + title + '\n📻 Puchki is streaming in <#' + voice.id + '>. Use /radio to change station or /247 enable for 24/7.', components: [] });
+    db.prepare('UPDATE radio_247 SET station_name=?,stream_url=? WHERE guild_id=?').run(title, streamUrl, i.guildId);
+  } catch (error) {
+    console.error('[Radio playback]', error);
+    await i.editReply({ content: 'Ye station play nahi hua. /radio se doosra station try karo. Public streams/nodes kabhi-kabhi offline hote hain.', components: [] });
+  }
+  return true;
+}
+
+export { radioCommands };
