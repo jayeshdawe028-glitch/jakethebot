@@ -34,10 +34,10 @@ const helpPages = {
     {name:'👑 Premium — authorized staff',value:'`/premium activate server-id:<ID>` — grant 30 days\n`/premium renew server-id:<ID>` — add 30 days\n`/premium remove server-id:<ID>` — remove active Premium'},
     {name:'🔒 Premium — owner only',value:'`/premium staff-add`, `staff-limit`, `staff-remove`, `staff-list`, `grant-user`, `revoke-user`, `guildlist`\nUse Discord’s slash-command options to see required arguments.'}
   ]},
-  music: {title:'🎵 Music Zone',description:'Free public Lavalink nodes are tried automatically; no API key or extra setup required. An optional LAVAHOST_KEY can be configured for a hosted endpoint.',fields:[
-    {name:'Playback',value:'`/play song:<name or YouTube/Spotify URL>` — search and play\n`/skip` — skip current track\n`/pause` — pause\n`/resume` — resume\n`/stop` — stop and clear\n`/queue` — show upcoming tracks',inline:false},
-    {name:'24/7 Voice',value:'`/247 enable` — stay in your current voice channel and try to rejoin after restart\n`/247 disable` — leave and disable. Requires Manage Server permission.',inline:false},
-    {name:'Setup',value:'No key needed by default: Puchki tries community-run public Lavalink nodes. They may be busy or offline, so playback is not guaranteed. Optionally configure `LAVAHOST_KEY` for Lavahost.',inline:false}
+  radio: {title:'📻 Hindi FM Radio',description:'Choose a live radio stream from the public station directory.',fields:[
+    {name:'Live Radio',value:'/radio — open the station picker for Radio Mirchi, BIG FM, MY FM, Radio City, Red FM, Mirchi Love, Vividh Bharati and other available Hindi stations.',inline:false},
+    {name:'24/7 Voice',value:'/247 enable — save the currently playing station and try to resume after restart. Requires Manage Server permission.\n/247 disable — stop radio and leave voice.',inline:false},
+    {name:'Note',value:'Availability depends on the public radio directory, broadcaster streams, and the community audio node. No private station API keys are used.',inline:false}
   ]},
   fun: {title:'🎉 Fun Zone',description:'Prank commands only — no real ban or kick is performed.',fields:[
     {name:'😈 Fake Moderation Pranks',value:'`p!ban @member` — professional-looking **FAKE BAN** notice with a funny warning and appeal buttons.\n`p!kick @member` — matching **FAKE KICK** prank notice.\nNo actual moderation action is taken.',inline:false},
