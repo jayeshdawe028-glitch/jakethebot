@@ -8,7 +8,8 @@ const commandList = [
   {name:'Home',id:'help:home'},
   {name:'Security',id:'help:security'},
   {name:'Management',id:'help:management'},
-  {name:'Extra',id:'help:extra'}
+  {name:'Extra',id:'help:extra'},
+  {name:'Fun',id:'help:fun'}
 ];
 const helpPages = {
   home: {title:'🐾 Puchki • Command Center', description:'Here are the commands that are implemented in this version. Choose a category below.', fields:[
@@ -30,6 +31,11 @@ const helpPages = {
     {name:'💎 Premium — everyone',value:'`/premium info` — check Premium status for the current server'},
     {name:'👑 Premium — authorized staff',value:'`/premium activate server-id:<ID>` — grant 30 days\n`/premium renew server-id:<ID>` — add 30 days\n`/premium remove server-id:<ID>` — remove active Premium'},
     {name:'🔒 Premium — owner only',value:'`/premium staff-add`, `staff-limit`, `staff-remove`, `staff-list`, `grant-user`, `revoke-user`, `guildlist`\nUse Discord’s slash-command options to see required arguments.'}
+  ]},
+  fun: {title:'🎉 Fun Zone',description:'Prank commands only — no real ban or kick is performed.',fields:[
+    {name:'😈 Fake Moderation Pranks',value:'`p!ban @member` — professional-looking **FAKE BAN** notice with a funny warning and appeal buttons.\n`p!kick @member` — matching **FAKE KICK** prank notice.\nNo actual moderation action is taken.',inline:false},
+    {name:'🧹 Microclear',value:'`!Microclear <text>` — delete messages containing that text from the **current channel**. Example: `!Microclear @jake vc aaa`. Requires Manage Messages; scans up to 5,000 recent messages per run.',inline:false},
+    {name:'⚠️ Note',value:'Microclear permanently deletes matching messages in this channel. Check the search text before running it.',inline:false}
   ]}
 };
 const helpRow = active => new ActionRowBuilder().addComponents(commandList.map(c =>
